@@ -14,11 +14,6 @@ const COLORS = [
     { bg: "#fce4ec", text: "#c2185b" }, // pink
 ];
 
-const BLOCKED_AVATAR_HOSTS = new Set([
-    "ui-avatars.com",
-    "www.ui-avatars.com",
-]);
-
 const CLOUDINARY_HOSTS = new Set([
     "res.cloudinary.com",
 ]);
@@ -32,9 +27,11 @@ const IMAGE_PROXY_BASE = buildApiUrl("/files/image-proxy");
 export function isValidAvatarUrl(url) {
     if (!url || !url.trim()) return false;
     if (url.startsWith("data:")) return true; // base64 upload — always valid
+    if (url.startsWith("blob:")) return true; // local object URL preview
+    if (url.startsWith("/")) return true; // same-origin relative image URL
     try {
         const { protocol, hostname } = new URL(url);
-        if (BLOCKED_AVATAR_HOSTS.has(hostname)) return false;
+        // Accept any standard web URL; strict host allow-listing can hide valid avatars.
         return protocol === "http:" || protocol === "https:";
     } catch {
         return false;
@@ -42,7 +39,7 @@ export function isValidAvatarUrl(url) {
 }
 
 export function getDisplayImageUrl(url) {
-    if (!isValidAvatarUrl(url) || url.startsWith("data:")) return url;
+    if (!isValidAvatarUrl(url) || url.startsWith("data:") || url.startsWith("blob:") || url.startsWith("/")) return url;
 
     try {
         const parsedUrl = new URL(url);
