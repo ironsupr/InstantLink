@@ -200,6 +200,7 @@ const VideoCallModal = ({
   isOpen,
   onClose,
   callId,
+  apiKey,
   token,
   user,
   isInitiator,
@@ -267,6 +268,7 @@ const VideoCallModal = ({
   const shouldCaptureSpeechRef = useRef(false);
   const pendingEntriesRef = useRef([]);
   const transcriptEndRef = useRef(null);
+  const streamApiKey = apiKey || STREAM_API_KEY;
 
   const updateDraftStroke = (updater) => {
     setDraftStroke((prev) => {
@@ -727,14 +729,14 @@ const VideoCallModal = ({
 
   const joinCall = async () => {
     if (isJoining || call) return;
-    if (!token || !user) {
+    if (!token || !user || !streamApiKey) {
       toast.error('Call credentials are missing.');
       return;
     }
 
     const initialize = async () => {
       const videoClient = StreamVideoClient.getOrCreateInstance({
-        apiKey: STREAM_API_KEY,
+        apiKey: streamApiKey,
         user: {
           id: user._id,
           name: user.fullName,

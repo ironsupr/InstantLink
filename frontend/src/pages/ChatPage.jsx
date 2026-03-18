@@ -39,15 +39,16 @@ const ChatPage = () => {
     queryFn: getStreamToken,
     enabled: !!authUser, // this will run only when authUser is available
   });
+  const streamApiKey = tokenData?.apiKey || STREAM_API_KEY;
 
   useEffect(() => {
     const initChat = async () => {
-      if (!tokenData?.token || !authUser) return;
+      if (!tokenData?.token || !authUser || !streamApiKey) return;
 
       try {
         console.log("Initializing stream chat client...");
 
-        const client = StreamChat.getInstance(STREAM_API_KEY);
+        const client = StreamChat.getInstance(streamApiKey);
 
         await client.connectUser(
           {
@@ -90,7 +91,7 @@ const ChatPage = () => {
         clientRef.current = null;
       }
     };
-  }, [tokenData, authUser, targetUserId]);
+  }, [tokenData, authUser, targetUserId, streamApiKey]);
 
   const handleVideoCall = () => {
     if (channel) {

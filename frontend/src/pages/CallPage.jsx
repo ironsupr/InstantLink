@@ -34,12 +34,13 @@ const CallPage = () => {
     queryFn: getStreamToken,
     enabled: !!authUser,
   });
+  const streamApiKey = tokenData?.apiKey || STREAM_API_KEY;
 
   useEffect(() => {
     let mounted = true;
 
     const initCall = async () => {
-      if (!tokenData?.token || !authUser || !callId) return;
+      if (!tokenData?.token || !authUser || !callId || !streamApiKey) return;
 
       try {
         const user = {
@@ -49,7 +50,7 @@ const CallPage = () => {
         };
 
         const videoClient = StreamVideoClient.getOrCreateInstance({
-          apiKey: STREAM_API_KEY,
+          apiKey: streamApiKey,
           user,
           token: tokenData.token,
         });
@@ -78,7 +79,7 @@ const CallPage = () => {
     return () => {
       mounted = false;
     };
-  }, [tokenData, authUser, callId]);
+  }, [tokenData, authUser, callId, streamApiKey]);
 
   if (isLoading || isConnecting) return <PageLoader />;
 

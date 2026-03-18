@@ -87,6 +87,7 @@ export const StreamProvider = ({ children }) => {
     gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+  const streamApiKey = tokenData?.apiKey || STREAM_API_KEY;
 
   /* dmMeta: { [partnerUserId]: { unread, lastMsg, lastMsgAt, lastMsgSenderId, channelId, partnerName, partnerImage } } */
   const [dmMeta, setDmMeta] = useState({});
@@ -166,7 +167,8 @@ export const StreamProvider = ({ children }) => {
 
     try {
       const StreamChat = await getStreamChatClass();
-      const client = StreamChat.getInstance(STREAM_API_KEY);
+      if (!streamApiKey) return [];
+      const client = StreamChat.getInstance(streamApiKey);
       if (!client?.userID) return [];
 
       const response = await client.queryUsers(
@@ -182,7 +184,7 @@ export const StreamProvider = ({ children }) => {
       console.warn("[StreamContext] Failed to refresh presence:", error);
       return [];
     }
-  }, [upsertPresenceUsers]);
+  }, [streamApiKey, upsertPresenceUsers]);
 
   /* ── Browser notification permission ───────────── */
   const [notifPermission, setNotifPermission] = useState(
@@ -383,14 +385,14 @@ export const StreamProvider = ({ children }) => {
   }, [authUser]);
 
   useEffect(() => {
-    if (!shouldBootstrapStream || !tokenData?.token || !authUser) return;
+    if (!shouldBootstrapStream || !tokenData?.token || !authUser || !streamApiKey) return;
     let isMounted = true;
     let scheduledSeed = null;
 
     const setup = async () => {
       try {
         const StreamChat = await getStreamChatClass();
-        const client = StreamChat.getInstance(STREAM_API_KEY);
+        const client = StreamChat.getInstance(streamApiKey);
 
         /* Connect only once */
         const img = authUser.profilePic?.startsWith("data:")
@@ -718,7 +720,7 @@ export const StreamProvider = ({ children }) => {
       cleanupRef.current?.();
       cleanupRef.current = null;
     };
-  }, [authUser, shouldBootstrapStream, tokenData]);
+  }, [authUser, shouldBootstrapStream, tokenData, streamApiKey]);
 
   const markAsRead = useCallback(async (partnerId) => {
     setDmMeta((prev) => ({
@@ -729,7 +731,8 @@ export const StreamProvider = ({ children }) => {
     // Also tell Stream to mark it as read for sync across devices
     try {
       const StreamChat = await getStreamChatClass();
-      const client = StreamChat.getInstance(STREAM_API_KEY);
+      if (!streamApiKey) return;
+      const client = StreamChat.getInstance(streamApiKey);
       const selfId = selfIdRef.current;
       if (!selfId || !partnerId) return;
 
@@ -753,7 +756,7 @@ export const StreamProvider = ({ children }) => {
     } catch (err) {
       console.warn("[StreamContext] Failed to mark channel as read in SDK:", err);
     }
-  }, []);
+  }, [streamApiKey]);
 
   const markOrgChannelAsRead = useCallback(async (channelId) => {
     if (!channelId) return;
@@ -763,7 +766,8 @@ export const StreamProvider = ({ children }) => {
     }));
     try {
       const StreamChat = await getStreamChatClass();
-      const client = StreamChat.getInstance(STREAM_API_KEY);
+      if (!streamApiKey) return;
+      const client = StreamChat.getInstance(streamApiKey);
       if (!client?.userID) return;
       const cid = `team:${channelId}`;
       const ch = client.activeChannels?.[cid] || client.channel("team", channelId);
@@ -771,7 +775,7 @@ export const StreamProvider = ({ children }) => {
     } catch (err) {
       console.warn("[StreamContext] Failed to mark team channel as read:", err);
     }
-  }, []);
+  }, [streamApiKey]);
 
   return (
     <StreamContext.Provider value={{ dmMeta, channelMeta, presenceById, getUserPresence, refreshUserPresence, markAsRead, markOrgChannelAsRead, notifPermission, requestNotifPermission, notificationPrefs, getConversationPrefs, isConversationMuted, isMessageMuted, isCallMuted, isMessageMutedLive, isCallMutedLive, toggleConversationMute, toggleNotificationMute, updateConversationCallSetting }}>

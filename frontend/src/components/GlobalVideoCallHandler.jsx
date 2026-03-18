@@ -38,6 +38,7 @@ const GlobalVideoCallHandler = () => {
     queryFn: getStreamToken,
     enabled: !!authUser,
   });
+  const streamApiKey = tokenData?.apiKey || STREAM_API_KEY;
 
   const [incomingCall, setIncomingCall] = useState(null);
   const [showVideoCall, setShowVideoCall] = useState(false);
@@ -113,10 +114,10 @@ const GlobalVideoCallHandler = () => {
   };
 
   useEffect(() => {
-    if (!authUser || !tokenData?.token) return;
+    if (!authUser || !tokenData?.token || !streamApiKey) return;
 
     const videoClient = StreamVideoClient.getOrCreateInstance({
-      apiKey: STREAM_API_KEY,
+      apiKey: streamApiKey,
       user: {
         id: authUser._id,
         name: authUser.fullName,
@@ -279,7 +280,7 @@ const GlobalVideoCallHandler = () => {
       // NOTE: We don't disconnect the user here to avoid signaling gaps during token refreshes.
       // The client instance is managed by StreamVideoClient.getOrCreateInstance.
     };
-  }, [authUser, tokenData, navigate]);
+  }, [authUser, tokenData, navigate, streamApiKey]);
 
   const handleAccept = () => {
     if (!incomingCall) return;
@@ -349,7 +350,7 @@ const GlobalVideoCallHandler = () => {
     ? getConversationPrefs(incomingCall.conversationId)
     : { ringtoneVolume: 0.6, vibrate: true };
 
-  if (!authUser || !tokenData?.token) return null;
+  if (!authUser || !tokenData?.token || !streamApiKey) return null;
 
   return (
     <>
@@ -371,6 +372,7 @@ const GlobalVideoCallHandler = () => {
             setCallInfo(null);
           }}
           callId={callInfo.callId}
+          apiKey={streamApiKey}
           token={tokenData.token}
           user={authUser}
           isInitiator={false}

@@ -3,8 +3,11 @@ import Organization from "../models/Organization.js";
 
 export async function getStreamToken(req, res) {
   try {
+    if (!process.env.STREAM_API_KEY) {
+      return res.status(500).json({ message: "STREAM_API_KEY is not configured" });
+    }
     const token = generateStreamToken(req.user.id);
-    res.status(200).json({ token });
+    res.status(200).json({ token, apiKey: process.env.STREAM_API_KEY || "" });
   } catch (error) {
     console.log("Error in getStreamToken controller:", error.message);
     res.status(500).json({ message: "Internal Server Error" });

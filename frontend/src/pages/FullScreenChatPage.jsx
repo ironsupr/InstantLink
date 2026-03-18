@@ -77,6 +77,7 @@ const FullScreenChatPage = () => {
     // start immediately on subsequent channel navigations.
     staleTime: 30 * 60 * 1000,
   });
+  const streamApiKey = tokenData?.apiKey || STREAM_API_KEY;
 
   useEffect(() => {
     let cancelled = false;
@@ -89,10 +90,10 @@ const FullScreenChatPage = () => {
     const initChat = async () => {
       // If token or user aren't ready yet, keep the loader spinning.
       // The effect will re-run when tokenData / authUser populate.
-      if (!tokenData?.token || !authUser) return;
+      if (!tokenData?.token || !authUser || !streamApiKey) return;
 
       try {
-        const client = StreamChat.getInstance(STREAM_API_KEY);
+        const client = StreamChat.getInstance(streamApiKey);
 
         // Only (re)connect if not already connected as this user
         if (client.userID !== authUser._id) {
@@ -209,7 +210,7 @@ const FullScreenChatPage = () => {
       // tears down the Stream WS connection and causes a blank screen race.
       // Disconnection is handled by the unmount-only effect below.
     };
-  }, [tokenData, authUser, channelOrUserId]);
+  }, [tokenData, authUser, channelOrUserId, streamApiKey]);
 
   const conversationId = channel?.id || channelOrUserId;
 
@@ -585,6 +586,7 @@ const FullScreenChatPage = () => {
           setIsInitiatingCall(false);
         }}
         callId={callId}
+        apiKey={streamApiKey}
         token={tokenData?.token}
         user={authUser}
         isInitiator={isInitiatingCall}
