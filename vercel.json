@@ -10,7 +10,7 @@
   "crons": [
     {
       "path": "/api/internal/cron/meeting-reminders",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 9 * * *"
     }
   ],
   "rewrites": [
