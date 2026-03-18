@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
+import { createPortal } from "react-dom";
 import Avatar from "./Avatar";
 import {
   X, MessageSquare, MapPin, Globe, BookOpen,
@@ -42,9 +43,9 @@ const ContactCard = ({ user, onClose, selfId }) => {
   };
   const badge = roleBadge[user.role] ?? roleBadge.member;
 
-  return (
+  const modal = (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
       onClick={handleBackdrop}
     >
       <div
@@ -146,6 +147,9 @@ const ContactCard = ({ user, onClose, selfId }) => {
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") return modal;
+  return createPortal(modal, document.body);
 };
 
 export default ContactCard;
